@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCL Command Centre v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090F;
+  --bg2: #0D1117;
+  --bg3: #131922;
+  --gold: #D4A843;
+  --gold2: #F0C96A;
+  --gold-dim: rgba(212,168,67,0.12);
+  --gold-border: rgba(212,168,67,0.25);
+  --cyan: #22D3D3;
+  --cyan-dim: rgba(34,211,211,0.1);
+  --red: #F05151;
+  --red-dim: rgba(240,81,81,0.1);
+  --green: #34D399;
+  --green-dim: rgba(52,211,153,0.1);
+  --amber: #F59E0B;
+  --amber-dim: rgba(245,158,11,0.1);
+  --purple: #A78BFA;
+  --purple-dim: rgba(167,139,250,0.1);
+  --text: #E2E8F0;
+  --text2: #94A3B8;
+  --text3: #475569;
+  --border: rgba(255,255,255,0.06);
+  --card: rgba(255,255,255,0.03);
+  --hover: rgba(255,255,255,0.05);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::after {
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;
+}
+
+/* ── HEADER ── */
+.header {
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,9,15,0.92);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+  height:60px;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+.logo {
+  display:flex;align-items:center;gap:14px;
+}
+
+.logo-mark {
+  width:34px;height:34px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:var(--bg);
+}
+
+.logo-text {
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;font-weight:600;color:var(--gold);letter-spacing:0.04em;
+}
+
+.logo-sub {font-size:10px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;}
+
+.header-r {display:flex;align-items:center;gap:20px;}
+
+.live-pill {
+  display:flex;align-items:center;gap:6px;
+  background:var(--green-dim);border:1px solid rgba(52,211,153,0.2);
+  padding:4px 12px;border-radius:20px;
+  font-size:10px;font-weight:600;color:var(--green);letter-spacing:0.1em;text-transform:uppercase;
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.clock {font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);}
+
+/* ── CONFIDENTIAL BANNER ── */
+.conf-banner {
+  background:linear-gradient(90deg,rgba(240,81,81,0.08),rgba(240,81,81,0.04),rgba(240,81,81,0.08));
+  border-bottom:1px solid rgba(240,81,81,0.15);
+  padding:6px 28px;
+  font-size:10px;color:var(--red);letter-spacing:0.12em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+
+/* ── NAV ── */
+.nav {
+  display:flex;gap:2px;padding:10px 28px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);overflow-x:auto;position:relative;z-index:1;
+}
+.nav::-webkit-scrollbar{display:none;}
+
+.tab {
+  padding:6px 16px;border-radius:6px;
+  font-size:12px;font-weight:600;letter-spacing:0.04em;
+  cursor:pointer;border:none;background:transparent;color:var(--text3);
+  white-space:nowrap;transition:all 0.2s;
+}
+.tab:hover{color:var(--text);background:var(--hover);}
+.tab.active{background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-border);}
+
+/* ── MAIN ── */
+.main{padding:24px 28px;position:relative;z-index:1;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* ── KPI ROW ── */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;}
+
+.kpi{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:16px;position:relative;overflow:hidden;
+  transition:all 0.2s;cursor:default;
+}
+.kpi:hover{background:var(--hover);transform:translateY(-1px);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.k-gold::before{background:linear-gradient(90deg,var(--gold),transparent);}
+.kpi.k-cyan::before{background:linear-gradient(90deg,var(--cyan),transparent);}
+.kpi.k-green::before{background:linear-gradient(90deg,var(--green),transparent);}
+.kpi.k-amber::before{background:linear-gradient(90deg,var(--amber),transparent);}
+.kpi.k-red::before{background:linear-gradient(90deg,var(--red),transparent);}
+.kpi.k-purple::before{background:linear-gradient(90deg,var(--purple),transparent);}
+
+.kpi-label{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--text);line-height:1;margin-bottom:4px;}
+.kpi-sub{font-size:10px;color:var(--text3);}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+.fw{margin-bottom:16px;}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+
+.card-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text);}
+.card-body{padding:18px;}
+
+/* ── BADGE ── */
+.badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:600;letter-spacing:0.04em;}
+.b-gold{background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-border);}
+.b-cyan{background:var(--cyan-dim);color:var(--cyan);}
+.b-red{background:var(--red-dim);color:var(--red);}
+.b-green{background:var(--green-dim);color:var(--green);}
+.b-amber{background:var(--amber-dim);color:var(--amber);}
+.b-purple{background:var(--purple-dim);color:var(--purple);}
+.b-gray{background:rgba(255,255,255,0.06);color:var(--text3);}
+
+/* ── PRIORITY PILL ── */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:9px;padding:2px 8px;border-radius:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;}
+.p1{background:var(--red-dim);color:var(--red);}
+.p2{background:var(--amber-dim);color:var(--amber);}
+.p3{background:var(--green-dim);color:var(--green);}
+.p4{background:rgba(255,255,255,0.05);color:var(--text3);}
+
+/* ── COMPANY ROW ── */
+.co-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 18px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background 0.15s;
+}
+.co-row:last-child{border-bottom:none;}
+.co-row:hover{background:var(--hover);}
+
+.co-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);width:18px;flex-shrink:0;}
+.co-av{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.co-info{flex:1;min-width:0;}
+.co-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.co-stage{font-size:10px;color:var(--text3);margin-top:1px;}
+.co-next{font-size:10px;color:var(--text3);text-align:right;max-width:150px;line-height:1.4;}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{
+  padding:8px 14px;text-align:left;
+  font-size:9px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.1em;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.tbl td{
+  padding:11px 14px;font-size:12px;color:var(--text2);
+  border-bottom:1px solid rgba(255,255,255,0.025);vertical-align:middle;
+}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:var(--hover);color:var(--text);}
+.tbl td:first-child{color:var(--text);font-weight:600;}
+
+/* ── PENDING ITEM ── */
+.pend{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 18px;border-bottom:1px solid var(--border);
+}
+.pend:last-child{border-bottom:none;}
+.pend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.pend-info{flex:1;}
+.pend-title{font-size:12px;color:var(--text);font-weight:500;margin-bottom:2px;}
+.pend-meta{font-size:10px;color:var(--text3);line-height:1.5;}
+.pend-owner{font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.05);color:var(--text2);white-space:nowrap;flex-shrink:0;}
+
+/* ── TIMELINE ── */
+.tl-item{display:flex;gap:12px;padding:10px 18px;position:relative;}
+.tl-item:not(:last-child)::after{content:'';position:absolute;left:26px;top:32px;bottom:-10px;width:1px;background:var(--border);}
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.tl-content{flex:1;}
+.tl-date{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:2px;}
+.tl-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.tl-desc{font-size:11px;color:var(--text3);line-height:1.6;}
+
+/* ── LOG ── */
+.log{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  border-radius:8px;padding:14px 16px;color:var(--text2);
+  line-height:2;max-height:180px;overflow-y:auto;
+}
+.log-line{display:flex;gap:10px;}
+.lt{color:var(--gold);flex-shrink:0;font-size:10px;}
+.lc{color:var(--cyan);flex-shrink:0;font-size:10px;}
+.lm{color:var(--text3);font-size:10px;}
+
+/* ── SECTION TITLE ── */
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--text);margin-bottom:4px;}
+.sec-sub{font-size:12px;color:var(--text3);margin-bottom:22px;}
+
+/* ── CONF TAG ── */
+.conf-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;padding:2px 7px;border-radius:3px;
+  background:rgba(240,81,81,0.12);color:var(--red);
+  border:1px solid rgba(240,81,81,0.2);font-weight:700;letter-spacing:0.06em;
+}
+
+/* ── MODAL ── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);z-index:200;
+  align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);
+}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:16px;width:92%;max-width:680px;
+  max-height:88vh;overflow-y:auto;padding:26px;position:relative;
+}
+.modal::-webkit-scrollbar{width:4px;}
+.modal::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px;}
+.modal-close{
+  position:absolute;top:14px;right:14px;
+  background:var(--hover);border:1px solid var(--border);
+  color:var(--text3);width:30px;height:30px;border-radius:7px;
+  cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+.modal-close:hover{color:var(--text);}
+.modal-name{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);margin-bottom:3px;}
+.modal-stage{font-size:12px;color:var(--text3);margin-bottom:18px;}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.di{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
+.dl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
+.dv{font-size:13px;color:var(--text);font-weight:500;}
+.ds{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin:14px 0 7px;}
+
+/* ── STOCK SECTION ── */
+.stock-row{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 18px;border-bottom:1px solid var(--border);
+}
+.stock-row:last-child{border-bottom:none;}
+.stock-name{font-size:13px;font-weight:600;color:var(--text);flex:1;}
+.stock-meta{font-size:10px;color:var(--text3);}
+.stock-status{font-size:11px;font-weight:500;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:10px;}
+
+/* ── RESP ── */
+@media(max-width:900px){
+  .kpis{grid-template-columns:repeat(3,1fr);}
+  .g2,.g3{grid-template-columns:1fr;}
+  .main{padding:16px;}
+  .nav{padding:8px 16px;}
+  .header{padding:0 16px;}
+}
+
+/* ── PROGRESS ── */
+.prog-bar{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;border-radius:2px;}
+
+/* ── FUNDING CARD ── */
+.fund-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 18px;border-bottom:1px solid var(--border);
+}
+.fund-item:last-child{border-bottom:none;}
+.fund-co{flex:1;}
+.fund-name{font-size:12px;font-weight:600;color:var(--text);}
+.fund-inst{font-size:10px;color:var(--text3);margin-top:1px;}
+.fund-amt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);text-align:right;}
+.fund-status{font-size:10px;color:var(--text3);text-align:right;margin-top:1px;}
+
+/* ── DOC ITEM ── */
+.doc-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 18px;border-bottom:1px solid var(--border);
+}
+.doc-item:last-child{border-bottom:none;}
+.doc-icon{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.doc-co{font-size:11px;font-weight:600;color:var(--text);flex:1;}
+.doc-name{font-size:11px;color:var(--text3);flex:2;}
+.doc-status{font-size:10px;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-mark">B</div>
+    <div>
+      <div class="logo-text">Between Capital Private Limited</div>
+      <div class="logo-sub">Master Command Centre · v2.0</div>
+    </div>
+  </div>
+  <div class="header-r">
+    <div class="live-pill"><div class="live-dot"></div>Live</div>
+    <div class="clock" id="clock"></div>
+  </div>
+</div>
+
+<div class="conf-banner">
+  🔒 Confidential · Boss + MB Only for Neo Mile / Tatsat / Manoj Vaibhav / Anchor-QIB items &nbsp;·&nbsp; Do not forward KB / PL / RD unless expressly approved
+</div>
+
+<div class="nav">
+  <button class="tab active" onclick="show('overview',this)">Overview</button>
+  <button class="tab" onclick="show('priority',this)">Priority Stack</button>
+  <button class="tab" onclick="show('companies',this)">All Companies</button>
+  <button class="tab" onclick="show('deals',this)">Deal Tracker</button>
+  <button class="tab" onclick="show('funding',this)">Funding Tracker</button>
+  <button class="tab" onclick="show('docs',this)">Document Checklist</button>
+  <button class="tab" onclick="show('pending',this)">Pending Actions</button>
+  <button class="tab" onclick="show('history',this)">History Log</button>
+  <button class="tab" onclick="show('team',this)">Team & Owners</button>
+  <button class="tab" onclick="show('stocks',this)">Stock Watch</button>
+  <button class="tab" onclick="show('rules',this)">Rules & Conf.</button>
+</div>
+
+<div class="main">
+
+<!-- ══ OVERVIEW ══ -->
+<div class="section active" id="s-overview">
+  <div class="sec-title">Good morning, Boss.</div>
+  <div class="sec-sub">BCL Master Command Centre · Updated from master doc 02 May 2026 + live updates</div>
+
+  <div class="kpis">
+    <div class="kpi k-gold"><div class="kpi-label">Active Companies</div><div class="kpi-val">14</div><div class="kpi-sub">+ 7 inactive/dropped</div></div>
+    <div class="kpi k-red"><div class="kpi-label">Critical Priority</div><div class="kpi-val">4</div><div class="kpi-sub">Immediate action needed</div></div>
+    <div class="kpi k-cyan"><div class="kpi-label">DRHP Active</div><div class="kpi-val">5</div><div class="kpi-sub">Morya · FreshO · Grandma · Off-Duty · Kapil</div></div>
+    <div class="kpi k-amber"><div class="kpi-label">Deals in Motion</div><div class="kpi-val">8</div><div class="kpi-sub">Rev merger · NCD · Pre-IPO · IPO</div></div>
+    <div class="kpi k-green"><div class="kpi-label">Funding Routes</div><div class="kpi-val">6</div><div class="kpi-sub">NCD · PID · Zetwork · Import · Pre-IPO · Pref</div></div>
+    <div class="kpi k-purple"><div class="kpi-label">Pending Docs</div><div class="kpi-val">9</div><div class="kpi-sub">Signatures · Sign-offs · Term sheets</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Top 8 Priorities</div><div class="badge b-gold">Master List</div></div>
+      <div id="top8"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Today's Critical Actions</div><div class="badge b-red">5 May 2026</div></div>
+      <div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Morya — Q1 FY27 revenue push (target Rs 12–12.5 Cr)</div><div class="pend-meta">ODI vendor decision: Vijay Adakar vs Khatavkar · Audit report from Dubai pending · Sandeep CA returns Friday</div></div><div class="pend-owner">KB / PL / RD</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Grandma — Issue agreement signature from promoter</div><div class="pend-meta">NCD SHA to be sent by Jay · Vinay arranging import + material funding</div></div><div class="pend-owner">Jay / Vinay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Off-Duty — NCD term sheet to Shehbaz · PID meeting Monday</div><div class="pend-meta">Vinay arranging Rs 5–6 Cr PID funding · GST refund Rs 3 Cr alignment</div></div><div class="pend-owner">Jay / Vinay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Kapil Cables — SHA finalization + Zetwork copper credit</div><div class="pend-meta">Rs 5–6 Cr limit · 4–5 MT copper/month · SHA from merchant banker pending</div></div><div class="pend-owner">PL / Vinay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Pentagon — Term sheet share + promoter call</div><div class="pend-meta">Jay visit next week · Tally/reserves review pending · Valuation Rs 9.5–10.5 Cr</div></div><div class="pend-owner">Jay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Einstein — Revised term sheet finalization</div><div class="pend-meta">Rs 18–19 Cr raise for ~35% dilution · September pre-IPO/NCD path</div></div><div class="pend-owner">Boss / MB</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fw card">
+    <div class="card-head"><div class="card-title">Activity Log</div><div class="badge b-cyan">Running</div></div>
+    <div class="card-body">
+      <div class="log">
+        <div class="log-line"><span class="lt">05 May</span><span class="lc">PENTAGON</span><span class="lm">Term sheet drafted · Rs 10 Cr rev merger + Rs 7 Cr pref · listed entity Rs 9.5–10.5 Cr · FY27 PAT Rs 20 Cr</span></div>
+        <div class="log-line"><span class="lt">05 May</span><span class="lc">BCL</span><span class="lm">Master Command Centre v2 built from full master doc · 14 active companies captured</span></div>
+        <div class="log-line"><span class="lt">05 May</span><span class="lc">EINSTEIN</span><span class="lm">Term sheet sent to Pranjul · Signing expected today · Sep pre-IPO/NCD path pending</span></div>
+        <div class="log-line"><span class="lt">04 May</span><span class="lc">MORYA</span><span class="lm">Prakalp visited showroom · Q1 Rs 12 Cr push given · ODI docs requested by Vijay Adakar</span></div>
+        <div class="log-line"><span class="lt">03 May</span><span class="lc">OFF-DUTY</span><span class="lm">PID meeting scheduled Monday · Vinay Rs 5–6 Cr · NCD term sheet to Shehbaz via Jay</span></div>
+        <div class="log-line"><span class="lt">02 May</span><span class="lc">BCL</span><span class="lm">Master doc updated to 02 May 2026 · NCD optionally convertible term sheet created</span></div>
+        <div class="log-line"><span class="lt">02 May</span><span class="lc">FRESHO</span><span class="lm">RVCL/RVCF deal confirmed off · Auditor refused restated financials · Jay CA to sign</span></div>
+        <div class="log-line"><span class="lt">02 May</span><span class="lc">KAPIL</span><span class="lm">Zetwork copper credit route activated · Rs 5–6 Cr limit · 4–5 MT/month via Vinay</span></div>
+        <div class="log-line"><span class="lt">Apr</span><span class="lc">MMIPL</span><span class="lm">Thailand structure confirmed · Entity 1: 51% Thai / 49% MMIPL · US sales entity 100% owned</span></div>
+        <div class="log-line"><span class="lt">Apr</span><span class="lc">GRANDMA</span><span class="lm">DRHP almost ready · Issue agmt shared · SHA being prepared · Vinay arranging import funding</span></div>
+        <div class="log-line"><span class="lt">Mar</span><span class="lc">ALLMARK</span><span class="lm">Moved to on-hold · NCD structure exists: Rs 25 Cr NCD + Rs 15 Cr SDFC takeover + Rs 5–10 Cr equity</span></div>
+        <div class="log-line"><span class="lt">Feb</span><span class="lc">PENTAGON</span><span class="lm">Listed company identified by Jay · Valuation 10.5 asked / 9.5–10 offered · Alignment achieved</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PRIORITY STACK ══ -->
+<div class="section" id="s-priority">
+  <div class="sec-title">Priority Stack</div>
+  <div class="sec-sub">Master priority list from BCL operating document — sorted by urgency</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Active Priority Companies</div><div class="badge b-gold">8 Ranked</div></div>
+      <div id="priorityFull"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">On Hold / Monitoring</div><div class="badge b-gray">6</div></div>
+      <div>
+        <div class="co-row"><div class="co-av" style="background:rgba(255,255,255,0.05);color:var(--text3)">AL</div><div class="co-info"><div class="co-name">Allmark Industries</div><div class="co-stage">NCD structure exists · On hold</div></div><div class="pill p4">HOLD</div></div>
+        <div class="co-row"><div class="co-av" style="background:rgba(255,255,255,0.05);color:var(--text3)">JJ</div><div class="co-info"><div class="co-name">Jandani Jewellers</div><div class="co-stage">Awaiting promoter tax payment</div></div><div class="pill p4">HOLD</div></div>
+        <div class="co-row"><div class="co-av" style="background:rgba(255,255,255,0.05);color:var(--text3)">DP</div><div class="co-info"><div class="co-name">DP Jain Infra</div><div class="co-stage">NCLT/NPA checks pending · investor feedback</div></div><div class="pill p4">HOLD</div></div>
+        <div class="co-row"><div class="co-av" style="background:rgba(255,255,255,0.05);color:var(--text3)">HA</div><div class="co-info"><div class="co-name">Haldar / Haldar Ventures</div><div class="co-stage">Monitoring · RD keeping Shashank engaged</div></div><div class="pill p4">MONITOR</div></div>
+        <div class="co-row"><div class="co-av" style="background:rgba(255,255,255,0.05);color:var(--text3)">MV</div><div class="co-info"><div class="co-name">Manoj Vaibhav Jewellers</div><div class="co-stage">Confidential · Boss + MB only</div></div><div class="conf-tag">🔒 CONF</div></div>
+        <div class="co-row"><div class="co-av" style="background:rgba(255,255,255,0.05);color:var(--text3)">RI</div><div class="co-info"><div class="co-name">Real Infrastructure</div><div class="co-stage">Awaiting financials · Rs 50 Cr equity/debt</div></div><div class="pill p4">PENDING</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card fw">
+    <div class="card-head"><div class="card-title">Dropped / Inactive</div><div class="badge b-gray">4</div></div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th>Company</th><th>Reason</th><th>Last Status</th></tr></thead>
+        <tbody>
+          <tr><td>Supal Pharma</td><td>Dropped Feb 2026 — IPO mandate conditional on Rs 20 Cr pre-IPO loan structure not viable</td><td>Inactive</td></tr>
+          <tr><td>Jayant Infra</td><td>Negative DD report issued — NCLT position not clean</td><td>Negative DD</td></tr>
+          <tr><td>RSV / ISB Wellness</td><td>No active execution update — cashflow/synopsis analysis stage only</td><td>Parked</td></tr>
+          <tr><td>RVCL / RVCF (FreshO)</td><td>Deal off as of May 2026 — FreshO still continues separately via DRHP</td><td>Off</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ALL COMPANIES ══ -->
+<div class="section" id="s-companies">
+  <div class="sec-title">All Companies</div>
+  <div class="sec-sub">Click any company for full profile — 14 active tracked companies</div>
+  <div id="companyGrid"></div>
+</div>
+
+<!-- ══ DEAL TRACKER ══ -->
+<div class="section" id="s-deals">
+  <div class="sec-title">Deal Tracker</div>
+  <div class="sec-sub">All active instruments, structures and key terms across BCL portfolio</div>
+  <div class="fw card">
+    <div class="card-head"><div class="card-title">Active Deals</div><div class="badge b-gold">All Instruments</div></div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th>Company</th><th>Instrument</th><th>Size / Terms</th><th>Valuation</th><th>FY26/27 PAT</th><th>Status</th><th>Lead</th></tr></thead>
+        <tbody>
+          <tr><td>Morya Cars</td><td><span class="badge b-cyan">IPO + ODI</span></td><td>—</td><td>—</td><td>Q1 FY27 Rs 12–12.5 Cr topline</td><td><span class="pill p1">ODI Vendor Pending</span></td><td>KB / PL / RD / Jay</td></tr>
+          <tr><td>Grandma International</td><td><span class="badge b-gold">IPO + NCD + Import Fund</span></td><td>—</td><td>—</td><td>—</td><td><span class="pill p1">Issue Agmt Pending</span></td><td>Jay / Vinay / MB</td></tr>
+          <tr><td>Kapil Cables</td><td><span class="badge b-amber">IPO + Zetwork WC</span></td><td>Rs 5–6 Cr WC · 4–5 MT copper</td><td>—</td><td>—</td><td><span class="pill p1">SHA Pending</span></td><td>PL / Vinay / Jay</td></tr>
+          <tr><td>Off-Duty / Global Fashion</td><td><span class="badge b-purple">IPO + PID/NCD</span></td><td>Rs 5–6 Cr PID</td><td>—</td><td>—</td><td><span class="pill p1">NCD TS to Shehbaz</span></td><td>Jay / Vinay</td></tr>
+          <tr><td>Pentagon Pharma</td><td><span class="badge b-gold">Rev. Merger + Pref</span></td><td>Rs 10 Cr + Rs 7 Cr pref</td><td>Rs 9.5–10.5 Cr listed</td><td>Rs 20 Cr FY27</td><td><span class="pill p2">Term Sheet Done</span></td><td>Jay / Subhash Jain</td></tr>
+          <tr><td>FreshO Kartz</td><td><span class="badge b-cyan">IPO (DRHP)</span></td><td>—</td><td>—</td><td>Rs 6 Cr FY26 · Rs 90 Cr topline</td><td><span class="pill p2">Auditor Issue</span></td><td>Jay / Narendra</td></tr>
+          <tr><td>MMIPL / MMIL</td><td><span class="badge b-cyan">IPO + NCD + Pre-IPO</span></td><td>13% IPO expense · PE ~24x</td><td>PE 24x · FY27</td><td>Rs 20 Cr FY27</td><td><span class="pill p2">Structuring</span></td><td>Jay (IPO) / Vinay (NCD)</td></tr>
+          <tr><td>Einstein Pvt Ltd</td><td><span class="badge b-amber">Pre-IPO / NCD</span></td><td>Rs 18–19 Cr · 35% dilution</td><td>—</td><td>—</td><td><span class="pill p2">TS Revision</span></td><td>Boss / MB</td></tr>
+          <tr><td>Yash Steel</td><td><span class="badge b-amber">Pre-IPO</span></td><td>Rs 50–90 Cr</td><td>Rs 1,300 Cr</td><td>Rs 130 Cr FY27</td><td><span class="pill p2">Early Stage</span></td><td>MB / Sanjay A.</td></div></td></tr>
+          <tr><td>Allmark Industries</td><td><span class="badge b-gray">NCD + Equity</span></td><td>Rs 25 Cr NCD · Rs 15 Cr SDFC · Rs 5–10 Cr equity</td><td>~Rs 300 Cr</td><td>—</td><td><span class="pill p4">ON HOLD</span></td><td>Vinay / Jay</td></tr>
+          <tr><td>BCL NCD Instrument</td><td><span class="badge b-red">Opt. Conv. NCD</span></td><td>15–18% coupon · 30% discount VWAP</td><td>Post-listing only</td><td>—</td><td><span class="pill p3">Structure Ready</span></td><td>BCL</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FUNDING TRACKER ══ -->
+<div class="section" id="s-funding">
+  <div class="sec-title">Funding Tracker</div>
+  <div class="sec-sub">Capital raise targets, instruments and current status across all companies</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Active Funding Routes</div><div class="badge b-gold">In Progress</div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(212,168,67,0.12);color:var(--gold);width:32px;height:32px;font-size:10px;">PP</div><div class="fund-co"><div class="fund-name">Pentagon — Reverse Merger</div><div class="fund-inst">Preferential allotment post reverse merger</div></div><div><div class="fund-amt">Rs 7 Cr pref</div><div class="fund-status">+ Rs 10 Cr acq. cost</div></div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(34,211,211,0.1);color:var(--cyan);width:32px;height:32px;font-size:10px;">GI</div><div class="fund-co"><div class="fund-name">Grandma — Import + Material Funding</div><div class="fund-inst">Vinay Agarwal arranging · NCD + import route</div></div><div><div class="fund-amt">TBD</div><div class="fund-status">In progress</div></div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(245,158,11,0.1);color:var(--amber);width:32px;height:32px;font-size:10px;">OD</div><div class="fund-co"><div class="fund-name">Off-Duty — PID Funding</div><div class="fund-inst">Vinay · Not term loan · PID structure</div></div><div><div class="fund-amt">Rs 5–6 Cr</div><div class="fund-status">Meeting Monday</div></div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(167,139,250,0.1);color:var(--purple);width:32px;height:32px;font-size:10px;">KC</div><div class="fund-co"><div class="fund-name">Kapil Cables — Zetwork Copper WC</div><div class="fund-inst">6-month credit line · Non-ferrous procurement</div></div><div><div class="fund-amt">Rs 5–6 Cr</div><div class="fund-status">Documenting</div></div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(52,211,153,0.1);color:var(--green);width:32px;height:32px;font-size:10px;">YS</div><div class="fund-co"><div class="fund-name">Yash Steel — Pre-IPO</div><div class="fund-inst">Large requirement · MB / Sanjay Asarani funnel</div></div><div><div class="fund-amt">Rs 50–90 Cr</div><div class="fund-status">Early evaluation</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">NCD Structures</div><div class="badge b-amber">Multiple Routes</div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(240,81,81,0.1);color:var(--red);width:32px;height:32px;font-size:10px;">BC</div><div class="fund-co"><div class="fund-name">BCL Optionally Convertible NCD</div><div class="fund-inst">Template instrument for portfolio companies</div></div><div><div class="fund-amt">15–18% coupon</div><div class="fund-status">30% VWAP discount on conv.</div></div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(255,255,255,0.05);color:var(--text3);width:32px;height:32px;font-size:10px;">AL</div><div class="fund-co"><div class="fund-name">Allmark NCD Structure</div><div class="fund-inst">Rs 25 Cr NCD + Rs 15 Cr SDFC + Rs 5–10 Cr equity · On hold</div></div><div><div class="fund-amt">Rs 40–50 Cr</div><div class="fund-status">On hold</div></div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(212,168,67,0.12);color:var(--gold);width:32px;height:32px;font-size:10px;">WM</div><div class="fund-co"><div class="fund-name">WealthMind / Off-Duty NCD</div><div class="fund-inst">NCD term sheet to be shared post meeting</div></div><div><div class="fund-amt">TBD</div><div class="fund-status">This week</div></div></div>
+      <div class="fund-item"><div class="co-av" style="background:rgba(52,211,153,0.1);color:var(--green);width:32px;height:32px;font-size:10px;">GI</div><div class="fund-co"><div class="fund-name">Grandma NCD + SHA</div><div class="fund-inst">SHA being prepared by Jay for promoter</div></div><div><div class="fund-amt">TBD</div><div class="fund-status">SHA pending</div></div></div>
+    </div>
+  </div>
+  <div class="fw card">
+    <div class="card-head"><div class="card-title">Funding Summary Table</div><div class="badge b-cyan">All Companies</div></div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th>Company</th><th>Instrument</th><th>Target Amount</th><th>Source / Route</th><th>Status</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>Pentagon</td><td>Pref. Allotment</td><td>Rs 7 Cr</td><td>Post reverse merger · listed entity</td><td><span class="pill p2">Structured</span></td><td>Jay / BCL</td></tr>
+          <tr><td>Grandma</td><td>Import + Material Funding</td><td>TBD</td><td>Vinay Agarwal route</td><td><span class="pill p1">In Progress</span></td><td>Vinay</td></tr>
+          <tr><td>Grandma</td><td>NCD (SHA pending)</td><td>TBD</td><td>BCL NCD instrument</td><td><span class="pill p1">SHA Pending</span></td><td>Jay</td></tr>
+          <tr><td>Off-Duty</td><td>PID Funding</td><td>Rs 5–6 Cr</td><td>Vinay · Non-term-loan structure</td><td><span class="pill p1">Meeting Monday</span></td><td>Vinay</td></tr>
+          <tr><td>Off-Duty</td><td>NCD</td><td>TBD</td><td>BCL NCD · Shehbaz</td><td><span class="pill p1">TS to be shared</span></td><td>Jay</td></tr>
+          <tr><td>Kapil</td><td>Zetwork WC</td><td>Rs 5–6 Cr</td><td>Zetwork copper credit line · 6 months</td><td><span class="pill p2">Documenting</span></td><td>Vinay</td></tr>
+          <tr><td>Yash Steel</td><td>Pre-IPO</td><td>Rs 50–90 Cr</td><td>Investor placement · MB / Sanjay A.</td><td><span class="pill p2">Evaluation</span></td><td>MB</td></tr>
+          <tr><td>Einstein</td><td>Pre-IPO / NCD</td><td>Rs 18–19 Cr</td><td>~35% dilution · Sep 2026</td><td><span class="pill p2">TS Revision</span></td><td>Boss / MB</td></tr>
+          <tr><td>Allmark</td><td>NCD + SDFC + Equity</td><td>Rs 40–50 Cr</td><td>Allmark NCD group (Vinay, Jay)</td><td><span class="pill p4">On Hold</span></td><td>Vinay / Jay</td></tr>
+          <tr><td>MMIPL</td><td>NCD + Pre-IPO</td><td>TBD</td><td>Vinay · Pre-IPO and NCD track</td><td><span class="pill p2">Structuring</span></td><td>Vinay</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DOCUMENT CHECKLIST ══ -->
+<div class="section" id="s-docs">
+  <div class="sec-title">Document Checklist</div>
+  <div class="sec-sub">Full document status per company — signatures, sign-offs, filings</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🔴 Overdue / Urgent</div></div>
+      <div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--red)"></div><div class="doc-co">Grandma</div><div class="doc-name">Issue Agreement — Promoter Signature</div><div class="doc-status badge b-red">OVERDUE</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--red)"></div><div class="doc-co">FreshO</div><div class="doc-name">Restated Financials — Auditor Sign-off</div><div class="doc-status badge b-red">BLOCKED</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--red)"></div><div class="doc-co">Kapil</div><div class="doc-name">SHA — Merchant Banker Side</div><div class="doc-status badge b-red">PENDING</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--red)"></div><div class="doc-co">Morya</div><div class="doc-name">Audit Report — Dubai Side</div><div class="doc-status badge b-red">PENDING</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--red)"></div><div class="doc-co">Morya</div><div class="doc-name">ODI Documentation — LRS / Bank Queries</div><div class="doc-status badge b-red">IN PROGRESS</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--red)"></div><div class="doc-co">Einstein</div><div class="doc-name">Revised Term Sheet — Final Version</div><div class="doc-status badge b-amber">REVISION</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">🟡 This Week</div></div>
+      <div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--amber)"></div><div class="doc-co">Grandma</div><div class="doc-name">NCD SHA — Jay to prepare for promoter</div><div class="doc-status badge b-amber">DRAFTING</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--amber)"></div><div class="doc-co">Off-Duty</div><div class="doc-name">NCD Term Sheet — Jay to Shehbaz</div><div class="doc-status badge b-amber">PENDING</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--amber)"></div><div class="doc-co">Pentagon</div><div class="doc-name">Term Sheet — Share with promoter</div><div class="doc-status badge b-amber">READY</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--amber)"></div><div class="doc-co">MMIPL</div><div class="doc-name">Mandate Signing — Post Dubai meeting</div><div class="doc-status badge b-amber">PENDING</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--amber)"></div><div class="doc-co">Kapil</div><div class="doc-name">Zetwork Credit Line Documentation</div><div class="doc-status badge b-amber">IN PROGRESS</div></div>
+        <div class="doc-item"><div class="doc-icon" style="background:var(--amber)"></div><div class="doc-co">Yash Steel</div><div class="doc-name">Initial Financial Pack / Teaser Note</div><div class="doc-status badge b-amber">TO BE DONE</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card fw">
+    <div class="card-head"><div class="card-title">✅ Completed Documents</div><div class="badge b-green">Done</div></div>
+    <div>
+      <div class="doc-item"><div class="doc-icon" style="background:var(--green)"></div><div class="doc-co">BCL</div><div class="doc-name">Optionally Convertible NCD Term Sheet — 15–18% coupon + 30% VWAP discount</div><div class="doc-status badge b-green">DONE ✅</div></div>
+      <div class="doc-item"><div class="doc-icon" style="background:var(--green)"></div><div class="doc-co">Pentagon</div><div class="doc-name">Reverse Merger Term Sheet — Rs 10 Cr + Rs 7 Cr pref (05 May 2026)</div><div class="doc-status badge b-green">DONE ✅</div></div>
+      <div class="doc-item"><div class="doc-icon" style="background:var(--green)"></div><div class="doc-co">Morya</div><div class="doc-name">Ajman Free Zone License + Company Formation</div><div class="doc-status badge b-green">DONE ✅</div></div>
+      <div class="doc-item"><div class="doc-icon" style="background:var(--green)"></div><div class="doc-co">Kapil</div><div class="doc-name">NOC from Mintifi / Financier — Received</div><div class="doc-status badge b-green">DONE ✅</div></div>
+      <div class="doc-item"><div class="doc-icon" style="background:var(--green)"></div><div class="doc-co">Jayant Infra</div><div class="doc-name">Negative DD Report — Issued</div><div class="doc-status badge b-green">DONE ✅</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PENDING ACTIONS ══ -->
+<div class="section" id="s-pending">
+  <div class="sec-title">Pending Actions</div>
+  <div class="sec-sub">All open items across BCL portfolio — by urgency and owner</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🔴 Critical / Overdue</div></div>
+      <div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Morya — ODI vendor finalization</div><div class="pend-meta">Vijay Adakar vs Khatavkar · Decision pending · LRS details needed</div></div><div class="pend-owner">KB</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Morya — Q1 FY27 topline Rs 12–12.5 Cr push</div><div class="pend-meta">Internal estimate Rs 9.5–10 Cr · Gap Rs 2–2.5 Cr to fill</div></div><div class="pend-owner">PL / RD</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Grandma — Issue agreement signature OVERDUE</div><div class="pend-meta">Blocking pre-IPO and funding · Promoter Jaydeep to sign</div></div><div class="pend-owner">Jay / MB</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Grandma — BSE comfort / rejection points resolution</div><div class="pend-meta">3 prior rejection points · Jay to resolve before DRHP filing</div></div><div class="pend-owner">Jay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">FreshO — Auditor refusing restated financials</div><div class="pend-meta">Jay's CA to sign · Promoter in UK · Narendra handling</div></div><div class="pend-owner">Jay CA</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Kapil — SHA finalization from merchant banker</div><div class="pend-meta">BCL protection points: Mumbai jurisdiction, preferential route, no operational control</div></div><div class="pend-owner">PL / Jay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Off-Duty — NCD term sheet to Shehbaz/promoter</div><div class="pend-meta">Jay to send · PID meeting Monday with Vinay</div></div><div class="pend-owner">Jay / Vinay</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">🟡 This Week</div></div>
+      <div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Pentagon — Share term sheet with promoter</div><div class="pend-meta">Jay to visit next week · Tally + reserves review pending</div></div><div class="pend-owner">Jay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">MMIPL — Reschedule Dubai meeting (was 6th/7th)</div><div class="pend-meta">Buzz to accompany · PAT confirmation for valuation</div></div><div class="pend-owner">Jay / Buzz</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">MMIPL — Financial projections from Sanjay Asarani</div><div class="pend-meta">FY27 PAT Rs 20 Cr · Thailand + US entity structure</div></div><div class="pend-owner">Sanjay A.</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Morya — Sandeep CA returns Friday · Audit closure</div><div class="pend-meta">Audit report + bank query response post his return</div></div><div class="pend-owner">Sandeep CA</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Kapil — Zetwork copper credit line documentation</div><div class="pend-meta">Rs 5–6 Cr · 6-month term · 4–5 MT/month copper</div></div><div class="pend-owner">Vinay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Yash Steel — Financial pack + initial teaser</div><div class="pend-meta">Projections expected · Rs 3,000 Cr topline · Rs 130 Cr PAT FY27</div></div><div class="pend-owner">MB / Sanjay A.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🟢 Awaiting Inbound</div></div>
+      <div>
+        <div class="pend"><div class="pend-dot" style="background:var(--green)"></div><div class="pend-info"><div class="pend-title">Grandma — Financial numbers still awaited</div><div class="pend-meta">Required for DRHP filing · Jay / promoter team</div></div><div class="pend-owner">Promoter</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--green)"></div><div class="pend-info"><div class="pend-title">FreshO — Final FY26/FY27 numbers confirmation</div><div class="pend-meta">Rs 90 Cr topline / Rs 6 Cr PAT to be confirmed</div></div><div class="pend-owner">Jay</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--green)"></div><div class="pend-info"><div class="pend-title">Einstein — Revised term sheet from promoter</div><div class="pend-meta">Rs 18–19 Cr for ~35% dilution · Sep pre-IPO path</div></div><div class="pend-owner">Boss / MB</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--green)"></div><div class="pend-info"><div class="pend-title">Jandani — Promoter tax payment before restart</div><div class="pend-meta">Deal revival conditional on tax clearance</div></div><div class="pend-owner">Promoter</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--green)"></div><div class="pend-info"><div class="pend-title">Real Infrastructure — Financials + projections</div><div class="pend-meta">Via Subhash Jain · Rs 50 Cr equity/debt requirement</div></div><div class="pend-owner">Subhash Jain</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--green)"></div><div class="pend-info"><div class="pend-title">Manoj Vaibhav — Reema Madam feedback on analysis</div><div class="pend-meta">🔒 Boss + MB only · Projections + mandate/exclusivity next</div></div><div class="pend-owner">MB / Boss</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">🔒 Confidential Pending</div><div class="badge b-red">Boss + MB Only</div></div>
+      <div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Pentagon — Neo Mile / Tatsat / Anchor-QIB track</div><div class="pend-meta">Confidential · Not to be shared with PL / RD / KB</div></div><div class="pend-owner conf-tag">🔒 MB</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--red)"></div><div class="pend-info"><div class="pend-title">Manoj Vaibhav — Exclusivity / mandate discussion</div><div class="pend-meta">Reema Madam track · PL restricted to QIP partner only</div></div><div class="pend-owner conf-tag">🔒 MB</div></div>
+        <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-info"><div class="pend-title">Crossbridge — ODI and DD backbone status</div><div class="pend-meta">KB responsible · Monopharma DD questionnaire closure</div></div><div class="pend-owner">KB</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HISTORY LOG ══ -->
+<div class="section" id="s-history">
+  <div class="sec-title">History Log</div>
+  <div class="sec-sub">Chronological record of BCL decisions, changes and key milestones</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">May 2026</div><div class="badge b-gold">This Month</div></div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-dot" style="background:var(--gold)"></div><div class="tl-content"><div class="tl-date">05 May 2026</div><div class="tl-title">Pentagon Term Sheet Completed</div><div class="tl-desc">Reverse merger structure: Rs 10 Cr acquisition + Rs 7 Cr preferential allotment. Listed entity valuation Rs 9.5–10.5 Cr. FY27 PAT base Rs 20 Cr. Jay visit next week.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--cyan)"></div><div class="tl-content"><div class="tl-date">05 May 2026</div><div class="tl-title">BCL Master Command Centre v2 Built</div><div class="tl-desc">Full 14-company dashboard built from master doc. Funding tracker, doc checklist, stock watch and rules sections added.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-content"><div class="tl-date">04 May 2026</div><div class="tl-title">Morya — Prakalp Showroom Visit</div><div class="tl-desc">Q1 Rs 12 Cr push given. Vijay Adakar initiated ODI documentation. LRS remittance details requested.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-content"><div class="tl-date">03 May 2026</div><div class="tl-title">Off-Duty PID Meeting Scheduled</div><div class="tl-desc">Vinay arranging Rs 5–6 Cr PID funding (not term loan). NCD term sheet to be shared with Shehbaz by Jay.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--red)"></div><div class="tl-content"><div class="tl-date">02 May 2026</div><div class="tl-title">RVCL/RVCF Deal Confirmed Off</div><div class="tl-desc">FreshO Kartz RVCL/RVCF structure officially off. FreshO continues via DRHP only. Auditor refused restated financials — Jay CA to sign.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--purple)"></div><div class="tl-content"><div class="tl-date">02 May 2026</div><div class="tl-title">Kapil — Zetwork Route Activated</div><div class="tl-desc">Rs 5–6 Cr working capital via Zetwork (major non-ferrous importer). 6-month copper credit line. 4–5 MT/month. Vinay handling.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--gold)"></div><div class="tl-content"><div class="tl-date">02 May 2026</div><div class="tl-title">BCL NCD Instrument Created</div><div class="tl-desc">Optionally Convertible NCD. 15–18% coupon + 30% discount to VWAP on conversion post-listing. Legal structure validated.</div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Apr 2026 & Earlier</div><div class="badge b-amber">Archive</div></div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-dot" style="background:var(--cyan)"></div><div class="tl-content"><div class="tl-date">Apr 2026</div><div class="tl-title">MMIPL — Thailand Structure Confirmed</div><div class="tl-desc">Entity 1: 51% Thai partner / 49% MMIPL India. US sales entity: 100% US shareholders allowed. IPO expense ~13%. PE ~24. Dubai meeting targeted.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--gold)"></div><div class="tl-content"><div class="tl-date">Apr 2026</div><div class="tl-title">Pentagon — Listed Company Identified</div><div class="tl-desc">Jay identified listed entity. Valuation: 10.5 asked vs 9.5–10 offered. Alignment achieved. Reverse merger route confirmed.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-content"><div class="tl-date">Apr 2026</div><div class="tl-title">Grandma — DRHP Nearly Ready</div><div class="tl-desc">Filing targeted 1 May. SEBI approval ~15 June. Marketing 15–30 June. RHP ~15 July. Funds in escrow ~22 July. Issue agreement shared but not signed.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-content"><div class="tl-date">Apr 2026</div><div class="tl-title">Off-Duty — Execution Resumed Post 20 Apr</div><div class="tl-desc">Shilpa (CFO) had personal engagement. Activity resumed after 20 April. DRHP compliance active.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--red)"></div><div class="tl-content"><div class="tl-date">Mar 2026</div><div class="tl-title">Allmark — Moved to On-Hold</div><div class="tl-desc">NCD + equity hybrid structure exists. Rs 25 Cr NCD + Rs 15 Cr SDFC + Rs 5–10 Cr equity. Pritam's Rs 15 Cr allocation available. Revival possible.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--text3)"></div><div class="tl-content"><div class="tl-date">Feb 2026</div><div class="tl-title">Supal Pharma — Dropped</div><div class="tl-desc">IPO mandate conditional on Rs 20 Cr pre-IPO loan (interest borne by us, repaid from IPO proceeds) — not viable. Dropped.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--text3)"></div><div class="tl-content"><div class="tl-date">Feb 2026</div><div class="tl-title">Jayant Infra — Negative DD Issued</div><div class="tl-desc">Tally data access given. Negative DD report prepared and issued. No further action.</div></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--gold)"></div><div class="tl-content"><div class="tl-date">2025–2026</div><div class="tl-title">BCL — Listed Shell via NCLT</div><div class="tl-desc">BCL acquired listed shell entity via NCLT process. Forms basis of reverse merger strategy for Pentagon and potentially others.</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TEAM & OWNERS ══ -->
+<div class="section" id="s-team">
+  <div class="sec-title">Team & Owners</div>
+  <div class="sec-sub">Full people map — KB = Krishna · PL = Prakalp · RD = Rushabh · MB = Mukesh Bhai</div>
+  <div class="g3">
+    <div class="card"><div class="card-head"><div class="card-title">KB — Krishna</div><div class="badge b-cyan">DD + ODI</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• Morya ODI + bank query coordination<br>• Crossbridge DD/ODI backbone<br>• Monopharma DD questionnaire<br>• Jayant Infra negative-DD record<br>⚠️ Do not share MB / confidential items</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">PL — Prakalp</div><div class="badge b-amber">Operations</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• Morya topline + ODI support<br>• Kapil SHA / DRHP / debt<br>• Pentagon — non-confidential only<br>• Jandani valuation/debt<br>• RSV cashflow · Daily project chases</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">RD — Rushabh</div><div class="badge b-green">Field + Follow-up</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• FreshO follow-ups (Rajendra, team)<br>• Vinay Agarwal coordination<br>• Allmark plant + funding follow-ups<br>• Haldar / Shashank engagement<br>• Document chases across companies</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">MB — Mukesh Bhai</div><div class="badge b-red">Confidential Strategy</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• 🔒 Neo Mile / Tatsat / Anchor-QIB<br>• 🔒 Manoj Vaibhav / Reema track<br>• Einstein — new funnel<br>• Yash Steel — sourcing<br>• BCL internal decisions</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">Jay / WealthMind</div><div class="badge b-gold">Merchant Banker</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• All DRHP mandates + execution<br>• Pentagon reverse merger<br>• Grandma SHA / NCD<br>• Off-Duty NCD term sheet<br>• Morya DRHP + audit · FreshO CA sign</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">Vinay Agarwal</div><div class="badge b-purple">Funding — NCD/Pre-IPO</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• Kapil — Zetwork copper WC<br>• Grandma — import + material funding<br>• Off-Duty — PID funding Rs 5–6 Cr<br>• Allmark NCD group<br>• MMIPL pre-IPO + NCD</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">Subhash Jain</div><div class="badge b-amber">Valuation + Structuring</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• Pentagon — deal structuring<br>• MMIPL — mandate + valuation<br>• Kapil — CMR reduction<br>• Real Infrastructure — introductions</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">Sanjay Asarani</div><div class="badge b-cyan">External — Funnels</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• MMIPL — financial projections<br>• Yash Steel — financial projections<br>• New company introductions / funnels</div></div>
+    <div class="card"><div class="card-head"><div class="card-title">Others</div><div class="badge b-gray">Extended Team</div></div><div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">• Buzz — MMIPL Dubai meetings<br>• Narendra — FreshO team coordination<br>• Shilpa — Off-Duty operations/CFO<br>• Vijay Adakar / Khatavkar — Morya ODI<br>• Sandeep CA — Morya audit (returns Fri)</div></div>
+  </div>
+</div>
+
+<!-- ══ STOCK WATCH ══ -->
+<div class="section" id="s-stocks">
+  <div class="sec-title">Stock Watch</div>
+  <div class="sec-sub">Listed entities and market monitoring — BCL portfolio companies + tracked names</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">BCL Listed Entity (Shell)</div><div class="badge b-gold">Reverse Merger Vehicle</div></div>
+      <div class="card-body">
+        <div style="font-size:12px;color:var(--text2);line-height:2">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text3)">Status</span><span style="color:var(--green)">Active · Pentagon Reverse Merger Target</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text3)">Acquisition Route</span><span>NCLT</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text3)">Valuation Offered</span><span style="color:var(--gold)">Rs 9.5–10 Cr</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text3)">Valuation Asked</span><span>Rs 10.5 Cr</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Next Step</span><span style="color:var(--amber)">Term sheet delivery to Pentagon promoter</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Haldar / Haldar Ventures</div><div class="badge b-gray">Monitoring</div></div>
+      <div class="card-body">
+        <div style="font-size:12px;color:var(--text2);line-height:2">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text3)">Status</span><span style="color:var(--text3)">Monitoring mode only</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text3)">Current Valuation Round</span><span>Rs 400</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text3)">Target in ~1.5 yrs</span><span style="color:var(--gold)">Rs 1,000</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Owner</span><span>RD · Keep Shashank engaged</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="fw card">
+    <div class="card-head"><div class="card-title">Companies to Track on BSE/NSE/Screener</div><div class="badge b-amber">Manual Check</div></div>
+    <div>
+      <div class="stock-row"><div class="co-av" style="background:rgba(34,211,211,0.1);color:var(--cyan);width:34px;height:34px;font-size:11px;">EX</div><div><div class="stock-name">Exicon</div><div class="stock-meta">Track on BSE/NSE · Price, filings, shareholding changes</div></div><div class="stock-status" style="color:var(--amber)">Check Screener.in</div></div>
+      <div class="stock-row"><div class="co-av" style="background:rgba(212,168,67,0.12);color:var(--gold);width:34px;height:34px;font-size:11px;">HK</div><div><div class="stock-name">Hitesh Kava</div><div class="stock-meta">Track on BSE/NSE · Price, announcements</div></div><div class="stock-status" style="color:var(--amber)">Check BSE</div></div>
+      <div class="stock-row"><div class="co-av" style="background:rgba(52,211,153,0.1);color:var(--green);width:34px;height:34px;font-size:11px;">HA</div><div><div class="stock-name">Haldar Ventures</div><div class="stock-meta">Script movement + price/disclosures monitoring</div></div><div class="stock-status" style="color:var(--text3)">RD Monitoring</div></div>
+    </div>
+    <div class="card-body" style="border-top:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text3);line-height:1.8">
+        💡 <strong style="color:var(--text2)">Stock Watch Note:</strong> When you check in, tell me which companies you want updated and I'll search BSE/NSE/Screener.in live for latest price, filings, shareholding and announcements. 
+        Add more company names to this list anytime, boss.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RULES & CONFIDENTIALITY ══ -->
+<div class="section" id="s-rules">
+  <div class="sec-title">Rules & Confidentiality</div>
+  <div class="sec-sub">Operating rules, terminology, confidentiality boundaries — BCL master document</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🔒 Confidentiality Rules</div><div class="badge b-red">Strict</div></div>
+      <div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--red)">🔒</span><span>Neo Mile / Tatsat / Anchor-QIB details — <strong style="color:var(--text)">Boss + MB only</strong></span></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--red)">🔒</span><span>Manoj Vaibhav / Reema Madam / exclusivity track — <strong style="color:var(--text)">Boss + MB only</strong>. PL = QIP partner search only.</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--red)">🔒</span><span>Pentagon confidential anchor / Neo Mile track — <strong style="color:var(--text)">Do not share with PL / RD / KB</strong></span></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--amber)">⚠️</span><span>Do not mention MB in KB/PL/RD communications unless Boss specifically approves</span></div>
+        <div style="display:flex;gap:8px"><span style="color:var(--amber)">⚠️</span><span>Boss + MB confidential items must NOT be forwarded to KB, PL or RD</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📋 Operating Rules</div><div class="badge b-cyan">Always Apply</div></div>
+      <div class="card-body" style="font-size:12px;color:var(--text2);line-height:2.2">
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--cyan)">→</span><span>Team updates: <strong style="color:var(--text)">Only share points relevant to that person.</strong> No unnecessary context.</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--cyan)">→</span><span>It is always <strong style="color:var(--text)">DRHP</strong> — never DRSP or DSRP</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--cyan)">→</span><span>In Off-Duty context: <strong style="color:var(--text)">pack = PAT</strong></span></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:var(--cyan)">→</span><span>KB = Krishna · PL = Prakalp · RD = Rushabh/Roshabh · MB = Mukesh Bhai</span></div>
+        <div style="display:flex;gap:8px"><span style="color:var(--cyan)">→</span><span>This dashboard is the <strong style="color:var(--text)">single source of truth</strong> — update whenever Boss gives live status</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="fw card">
+    <div class="card-head"><div class="card-title">🤖 Nidhi / Claude Project Setup Instructions</div><div class="badge b-gold">Paste into Project</div></div>
+    <div class="card-body">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:8px;padding:16px;line-height:1.9;max-height:300px;overflow-y:auto;">
+You are Nidhi, personal AI assistant to Siddharth, who runs Between Capital Private Limited (BCL).<br><br>
+Always address him as "boss". He may call you "Nidhi" — respond normally.<br><br>
+COMPANY CONTEXT: BCL manages 14 active companies across IPO, DRHP, reverse merger, NCD and pre-IPO mandates. Core team: KB=Krishna, PL=Prakalp, RD=Rushabh, MB=Mukesh Bhai, Jay/WealthMind=Merchant Banker, Vinay=NCD/Pre-IPO funding.<br><br>
+CONFIDENTIALITY: Neo Mile / Tatsat / Anchor-QIB / Manoj Vaibhav Reema track = Boss + MB only. Never share with KB/PL/RD unless expressly told.<br><br>
+TERMINOLOGY: Always DRHP (never DRSP). In Off-Duty context, "pack" = PAT.<br><br>
+DAILY WORKFLOW: Brief Boss every morning at 9:30 AM. Capture live updates and save to memory by subject/topic automatically.<br><br>
+WEEKLY: Regenerate Word brief + dashboard every Monday.<br><br>
+TEAM COMMS: When drafting messages for KB/PL/RD/MB — only include what's relevant to that person. No extra context.<br><br>
+MEMORY: Save ALL information shared by Boss or Nidhi in any chat to memory, organized by company/subject.
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<!-- MODAL -->
+<div class="overlay" id="modal" onclick="if(event.target===this)closeM()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeM()">✕</button>
+    <div class="modal-name" id="m-name"></div>
+    <div class="modal-stage" id="m-stage"></div>
+    <div class="dg" id="m-details"></div>
+    <div class="ds">Pending Actions</div>
+    <div id="m-pending"></div>
+    <div class="ds">Deal / Structure</div>
+    <div id="m-deal" style="font-size:12px;color:var(--text2);line-height:1.8;padding:8px 0;"></div>
+    <div class="ds">History</div>
+    <div id="m-history" style="font-size:12px;color:var(--text2);line-height:1.8;padding:8px 0;"></div>
+  </div>
+</div>
+
+<script>
+const companies = [
+  {id:1,abbr:'MC',name:'Morya Cars',color:'#F05151',priority:'P1',stage:'ODI + IPO Active · Q1 Revenue Push',instrument:'IPO + ODI',valuation:'—',raise:'—',pat:'Q1 FY27 Rs 12–12.5 Cr target',owner:'KB / PL / RD / Jay',pending:['Finalize ODI vendor: Vijay Adakar vs Khatavkar','Collect Dubai audit report','Push Q1 topline — gap Rs 2–2.5 Cr from Rs 12 Cr target','Answer bank / LRS remittance queries','Coordinate with Sandeep CA after Friday return'],deal:'IPO-ready structure through Dubai consolidation. ODI regularization of earlier LRS remittances. Ajman Free Zone company formed. Manoj + Dhiraj signed SPA. DRHP to start after structure and numbers align.',history:'Started with Dubai expansion + ODI structuring. Multiple Dubai structure changes (Ajman Free Zone to operational workshop). ICICI explored for Federal Bank takeover. Q1 FY27 target set Rs 12–12.5 Cr. Prakalp visited showroom May 4.'},
+  {id:2,abbr:'GI',name:'Grandma International',color:'#D4A843',priority:'P2',stage:'DRHP Nearly Ready · Issue Agmt Pending',instrument:'IPO + NCD + Import Funding',valuation:'—',raise:'—',pat:'—',owner:'Jay / Vinay / MB',pending:['Get issue agreement signed by promoter Jaydeep — OVERDUE','Get NCD SHA from Jay and send to promoter','Resolve 3 BSE rejection points before filing','Push Vinay for import + material funding update','Confirm financial numbers still awaited'],deal:'DRHP filing targeted. Timeline: Filing → SEBI approval ~15 Jun → Marketing 15–30 Jun → RHP ~15 Jul → Funds in escrow ~22 Jul. NCD + import funding being arranged by Vinay.',history:'Started as IPO/listing track. Fee/NOC issues caused early delays. Grandma Malawi project discussed. BSE rejection points identified. Debt support became recurring. DRHP almost complete April. Issue agreement shared but not signed.'},
+  {id:3,abbr:'KC',name:'Kapil Cables',color:'#A78BFA',priority:'P3',stage:'SHA Pending · Zetwork WC Active',instrument:'IPO + Zetwork WC Credit',valuation:'—',raise:'Rs 1 Cr equity (done) + Rs 5–6 Cr WC',pat:'—',owner:'PL / Vinay / Jay / RD',pending:['Finalize SHA with merchant banker — BCL protections: Mumbai jurisdiction, preferential, no control','Confirm Zetwork credit line terms and documentation','Track 4–5 MT/month copper procurement execution','Close remaining CMR / NOC items'],deal:'Equity placement Rs 1 Cr done (BCL/WealthMine). Working capital via Zetwork: Rs 5–6 Cr copper credit, 6-month term, 4–5 MT/month bunched copper. SHA critical — BCL insists on Mumbai jurisdiction + preferential route.',history:'Started as debt + IPO mandate. Rs 70 lakh default/overdues delayed NOC. Subhash Jain involved for CMR reduction. SHA negotiations became central. NOC from Mintifi received. Now: Zetwork WC route activated by Vinay.'},
+  {id:4,abbr:'OD',name:'Off-Duty / Global Fashion',color:'#F59E0B',priority:'P4',stage:'DRHP Active · PID/NCD Funding',instrument:'IPO + PID + NCD',valuation:'—',raise:'Rs 5–6 Cr PID',pat:'—',owner:'Jay / Vinay / Shehbaz / Shilpa',pending:['Jay to share NCD term sheet with Shehbaz/promoter','Complete PID funding meeting Monday','Finalize GST refund strategy — Rs 3 Cr alignment','Continue DRHP ROC/compliance docs'],deal:'DRHP process active. Vinay arranging Rs 5–6 Cr PID funding (not term loan). NCD term sheet to be shared with promoter. GST refund Rs 3 Cr pending.',history:'Started with debt + IPO readiness. Both mandates received. NOC process for 24 banks expedited. DRHP compliance progressing. Execution slowed due to Shilpa absence but resumed after 20 April. Off-Duty terminology: pack = PAT.'},
+  {id:5,abbr:'PP',name:'Pentagon Pharma',color:'#34D399',priority:'P5',stage:'Reverse Merger · Term Sheet Done',instrument:'Reverse Merger + Preferential',valuation:'Rs 9.5–10.5 Cr (listed entity)',raise:'Rs 10 Cr acq. + Rs 7 Cr pref.',pat:'Rs 20 Cr FY27',owner:'Jay / Subhash Jain / Boss',pending:['Share term sheet with promoter','Jay to visit next week','Review Tally data and reserves discrepancy','Keep Neo Mile/Tatsat/anchor track strictly confidential'],deal:'Reverse merger into BCL listed entity (acquired via NCLT). Rs 10 Cr for listed company acquisition. Rs 7 Cr preferential post-merger. FY27 PAT Rs 20 Cr. PAT positioning: Rs 20 Cr committed, pushing Rs 25 Cr.',history:'Started as QIB/Mainboard. Moved to debt/pre-IPO. Reserves discrepancy: Rs 80 Cr → Rs 30 Cr post revaluation. Trading turnover via Krunal discussed (6% margin). Listed company identified by Jay. Valuation alignment achieved Apr 2026. Term sheet done May 5.'},
+  {id:6,abbr:'FK',name:'FreshO Kartz',color:'#22D3D3',priority:'P6',stage:'DRHP Active · Auditor Issue',instrument:'IPO (DRHP)',valuation:'—',raise:'—',pat:'Rs 6 Cr FY26 · Rs 90 Cr topline',owner:'Jay CA / Narendra / RD',pending:['Get restated financials signed by Jay CA','Confirm final FY26/FY27 numbers','Keep DRHP checklist moving with Narendra','RVCL/RVCF — confirm treated as off'],deal:'DRHP paperwork active. Topline Rs 90 Cr, PAT Rs 6 Cr FY26. Auditor refusing to sign restated financials — Jay CA to sign. RVCL/RVCF deal off.',history:'Started with IPO/pre-IPO + card payment follow-ups. RVCF deal explored then dropped. Agro company merger (51%) discussed. Numbers stabilized Rs 90 Cr/Rs 6 Cr. Promoter went to UK April. Auditor refused May 2026.'},
+  {id:7,abbr:'MM',name:'MMIPL / MMIL',color:'#3B82F6',priority:'P7',stage:'Global Structure · IPO + NCD + Pre-IPO',instrument:'IPO + NCD + Pre-IPO',valuation:'PE ~24x FY27',raise:'TBD',pat:'Rs 20 Cr FY27',owner:'Jay (IPO) / Vinay (NCD) / Subhash Jain',pending:['Reschedule Dubai meeting (cancelled — factory inspection)','Await financial projections from Sanjay Asarani','Confirm mandate signing','Don\'t cross December IPO deadline','Thailand structure: finalize Entity 1 + US sales entity'],deal:'Global structure: India + US + Canada + Thailand. Entity 1: 51% Thai / 49% MMIPL. US sales entity: 100% US shareholders allowed. IPO expense ~13%. PE ~24. Buzz accompanies Dubai meetings.',history:'Started with India/US/Canada valuation. USD 1M PAT, USD 5M revenue targets. Multiple Subhash Jain meetings. Strong alignment achieved. Thailand structure added. Dubai meeting scheduled 6/7 May — cancelled due to factory inspection.'},
+  {id:8,abbr:'EP',name:'Einstein Pvt Ltd',color:'#F59E0B',priority:'P8',stage:'Pre-IPO / NCD · Term Sheet Revision',instrument:'Pre-IPO / NCD',valuation:'—',raise:'Rs 18–19 Cr',pat:'—',owner:'Boss / MB',pending:['Finalize revised term sheet','Confirm September pre-IPO/NCD path','Decide dilution: ~35% for Rs 18–19 Cr'],deal:'Education company. New funnel April. Rs 18–19 Cr for ~35% dilution. Interim pre-IPO ~Rs 4 Cr after September via NCD or alternate structure.',history:'Introduced as new funnel April 2026. Term sheet revisions in progress. May update: final revised term sheet awaited.'},
+  {id:9,abbr:'YS',name:'Yash Steel',color:'#1ABC9C',priority:'P9',stage:'Pre-IPO Evaluation · New Funnel',instrument:'Pre-IPO',valuation:'Rs 1,300 Cr',raise:'Rs 50–90 Cr',pat:'Rs 130 Cr FY27',owner:'MB / Sanjay A. / Boss',pending:['Collect financials and projections','Prepare initial note/teaser','Discuss merchant banker onboarding','Assess investor appetite for Rs 50–90 Cr'],deal:'New funnel via Sanjay Asarani / MB. FY27: Rs 3,000 Cr topline, Rs 130 Cr PAT. Valuation Rs 1,300 Cr (prior interest Rs 1,100 Cr). Jay for IPO, Vinay for pre-IPO/NCD.',history:'Fresh funnel introduced May 2026. At evaluation and onboarding stage.'},
+  {id:10,abbr:'CB',name:'Crossbridge / Monopharma / Jayant',color:'#475569',priority:'Support',stage:'DD + ODI Backbone · Active Support',instrument:'Internal Support Entity',valuation:'—',raise:'—',pat:'—',owner:'KB / Boss',pending:['Monopharma DD questionnaire closure','Track Crossbridge formation docs if pending','Jayant negative DD — keep on record'],deal:'Crossbridge: internal DD and ODI coordination entity. KB responsible. Morya ODI support platform. Monopharma DD ongoing. Jayant Infra: negative DD issued.',history:'Crossbridge formed for execution support. Krishna/KB took over ODI + DD coordination. Jayant Infra moved to negative DD Feb 2026. Monopharma in DD questionnaire stage.'},
+  {id:11,abbr:'MV',name:'Manoj Vaibhav Jewellers',color:'#F05151',priority:'CONF',stage:'Confidential · Boss + MB Only',instrument:'QIP + Mandate',valuation:'—',raise:'—',pat:'—',owner:'Boss / MB (conf) · PL for QIP only',pending:['🔒 Get Reema Madam feedback on financial analysis','🔒 Prepare projections','🔒 Push mandate/exclusivity discussion'],deal:'🔒 CONFIDENTIAL — Boss + MB only. Reema Madam track. Financial analysis of VCL sent. Projections + mandate/exclusivity next. PL ONLY handles QIP partner identification.',history:'Manoj Vaibhav team spoke to Reema Madam. Two-track structure: Boss+MB confidential + PL QIP-only.'},
+  {id:12,abbr:'RI',name:'Real Infrastructure',color:'#475569',priority:'Pending',stage:'Awaiting Financials · Rs 50 Cr Req',instrument:'Equity or Debt',valuation:'PAT ~Rs 54 Cr · Reserves Rs 300 Cr',raise:'Rs 50 Cr',pat:'Rs 54 Cr',owner:'Subhash Jain / Boss',pending:['Follow Subhash Jain for financials + projections in BCL format','Decide debt vs equity after numbers'],deal:'Rs 54 Cr PAT, paid-up Rs 12.5 Cr, reserves Rs 300 Cr. Requirement Rs 50 Cr equity/debt. Meeting Subhash Jain.',history:'Fresh funnel. Pending financials.'},
+  {id:13,abbr:'VA',name:'Vinay Agarwal Pipeline',color:'#A78BFA',priority:'Channel',stage:'Multi-Company Funding Channel',instrument:'NCD / Pre-IPO / QIB / PID',valuation:'—',raise:'Multiple',pat:'—',owner:'Vinay / RD / Boss',pending:['Prepare investor synopsis for Kapil, Pentagon, FreshO','Track company-wise Vinay commitments'],deal:'Vinay: Almart/Allmark background, Mizhao NBFC, Phillip Capital links. Active on: Kapil Zetwork, Grandma import, Off-Duty PID, Allmark NCD, MMIPL pre-IPO/NCD.',history:'Rushabh introduced Vinay. Started with Allmark. Expanded to multi-company funding role. Now primary funding channel for working capital + NCD.'},
+  {id:14,abbr:'BC',name:'BCL Internal Workstreams',color:'#D4A843',priority:'Internal',stage:'Operational · Profile + Task Management',instrument:'Internal',valuation:'—',raise:'—',pat:'—',owner:'Boss / MB / KB / PL / RD',pending:['Maintain weekly master file updates','Generate individual task lists for KB/PL/RD/MB','Update BCL investor profile: 4–5 investments with entry/exit/multiples'],deal:'BCL internal operations: website, profile, investor one-pagers, task management, confidentiality enforcement.',history:'Moved from ad-hoc updates to structured company-wise subjects. Internal task systems created for KB/PL/RD.'}
+];
+
+const priorities = [
+  {p:'P1',co:'Morya Cars',focus:'Q1 revenue push + ODI vendor + audit report + bank queries'},
+  {p:'P2',co:'Grandma International',focus:'Issue agreement, NCD SHA, funding comfort, BSE/DRHP readiness'},
+  {p:'P3',co:'Kapil Cables',focus:'SHA + Zetwork copper working capital + DRHP'},
+  {p:'P4',co:'Off-Duty / Global Fashion',focus:'PID/NCD funding, NCD term sheet, DRHP docs, GST refund'},
+  {p:'P5',co:'Pentagon Pharma',focus:'Term sheet/listed company route, Jay visit, valuation/Tally review'},
+  {p:'P6',co:'FreshO Kartz',focus:'Restated financials and auditor sign-off'},
+  {p:'P7',co:'MMIPL / MMIL',focus:'Thailand/US structure, Dubai meeting, mandate/valuation closure'},
+  {p:'P8',co:'Yash Steel / Einstein',focus:'Term sheets and initial financial packs'},
+];
+
+// Render top8
+document.getElementById('top8').innerHTML = priorities.map((p,i)=>`
+  <div class="co-row">
+    <div class="co-num">${p.p}</div>
+    <div class="co-info"><div class="co-name">${p.co}</div><div class="co-stage">${p.focus}</div></div>
+  </div>`).join('');
+
+// Render full priority
+document.getElementById('priorityFull').innerHTML = priorities.map((p,i)=>`
+  <div class="co-row">
+    <div class="co-num" style="color:var(--gold)">${p.p}</div>
+    <div class="co-info"><div class="co-name">${p.co}</div><div class="co-stage">${p.focus}</div></div>
+  </div>`).join('');
+
+// Render company grid
+function renderGrid(){
+  const chunks=[];
+  for(let i=0;i<companies.length;i+=3)chunks.push(companies.slice(i,i+3));
+  document.getElementById('companyGrid').innerHTML=chunks.map(ch=>`
+    <div class="g3">${ch.map(c=>`
+      <div class="card" style="cursor:pointer;transition:all 0.2s" onclick="openM(${c.id})"
+        onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform=''">
+        <div class="card-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="co-av" style="background:${c.color}18;color:${c.color};width:32px;height:32px;font-size:10px">${c.abbr}</div>
+            <div><div class="card-title" style="font-size:11px">${c.name}</div><div style="font-size:9px;color:var(--text3);margin-top:1px">${c.instrument}</div></div>
+          </div>
+          ${c.priority==='CONF'?'<span class="conf-tag">🔒</span>':`<span class="pill ${c.priority==='P1'||c.priority==='P2'?'p1':c.priority==='P3'||c.priority==='P4'?'p2':'p3'}">${c.priority}</span>`}
+        </div>
+        <div class="card-body" style="padding:12px 16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+            <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Valuation</div><div style="font-size:11px;color:var(--text);font-weight:500;margin-top:2px">${c.valuation}</div></div>
+            <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">FY27 PAT</div><div style="font-size:11px;color:var(--text);font-weight:500;margin-top:2px">${c.pat}</div></div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Next</div>
+          <div style="font-size:11px;color:var(--gold)">${c.pending[0]}</div>
+        </div>
+      </div>`).join('')}
+    </div>`).join('');
+}
+renderGrid();
+
+// Modal
+function openM(id){
+  const c=companies.find(x=>x.id===id);
+  document.getElementById('m-name').textContent=c.name;
+  document.getElementById('m-stage').textContent=c.stage;
+  document.getElementById('m-details').innerHTML=`
+    <div class="di"><div class="dl">Instrument</div><div class="dv">${c.instrument}</div></div>
+    <div class="di"><div class="dl">Priority</div><div class="dv">${c.priority}</div></div>
+    <div class="di"><div class="dl">Valuation</div><div class="dv">${c.valuation}</div></div>
+    <div class="di"><div class="dl">Raise Target</div><div class="dv">${c.raise}</div></div>
+    <div class="di"><div class="dl">FY27 PAT</div><div class="dv">${c.pat}</div></div>
+    <div class="di"><div class="dl">Owner</div><div class="dv">${c.owner}</div></div>`;
+  document.getElementById('m-pending').innerHTML=c.pending.map(p=>`
+    <div class="pend"><div class="pend-dot" style="background:var(--amber)"></div><div class="pend-title">${p}</div></div>`).join('');
+  document.getElementById('m-deal').textContent=c.deal;
+  document.getElementById('m-history').textContent=c.history;
+  document.getElementById('modal').classList.add('open');
+}
+function closeM(){document.getElementById('modal').classList.remove('open');}
+
+// Tabs
+function show(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// Clock
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleString('en-IN',{
+    day:'2-digit',month:'short',year:'numeric',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true
+  });
+}
+tick();setInterval(tick,1000);
+</script>
+</body>
+</html>
